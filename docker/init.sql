@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS mangas (
+  id          SERIAL PRIMARY KEY,
+  title       TEXT NOT NULL,
+  slug        TEXT NOT NULL UNIQUE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

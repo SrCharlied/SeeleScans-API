@@ -3,7 +3,7 @@ FROM oven/bun:1
 WORKDIR /app
 
 # Copiar dependencias
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 RUN bun install
 
 # Copiar código
