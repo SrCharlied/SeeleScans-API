@@ -318,3 +318,9 @@ curl -X DELETE http://localhost:3000/manga/9
 # Healthcheck
 curl http://localhost:3000/health
 ```
+
+## ✍️ Reflexión
+
+En este proyecto la verdad me centré en usar algo diferente para el backend, quería entender cómo es que funcionaba ElysiaJS y la verdad es que me pareció un framework muy bonito y fácil de entender, lo volvería a usar. Aparte de eso diría que JS en general no es mi lenguaje favorito y eso me ha cegado un poco en mis decisiones sobre su uso, prefiero casos como Tailwind y Laravel que los he estado usando bastante ya por un tiempo (literal solo 2 proyectos pero aja).
+
+No sé qué comentar con los challenges, pero me gustó bastante lo de crear el OpenAPI, me ha tocado en otros proyectos como con el de bases de datos que usé una fan API de un juego y esa onda estaba tan rara de usar que me hizo trabarme mucho al momento de su implementación y creo que OpenAPI es la respuesta a todo ese tipo de problemas.
