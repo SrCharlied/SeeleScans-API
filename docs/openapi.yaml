@@ -17,6 +17,8 @@ tags:
     description: Chapter and page lookup
   - name: tag
     description: Tag catalog
+  - name: rating
+    description: 1-5 star ratings per manga (anonymous, identified by client_id)
   - name: upload
     description: Image upload + static file serving
   - name: meta
@@ -207,6 +209,74 @@ paths:
                   $ref: '#/components/schemas/Page'
         '400':
           $ref: '#/components/responses/BadRequest'
+
+  /manga/{id}/rating:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [rating]
+      summary: Get rating stats for a manga
+      description: |
+        Returns aggregated stats: avg, count, distribution by stars, and the caller's rating
+        if `client_id` query param is provided.
+      parameters:
+        - name: client_id
+          in: query
+          required: false
+          schema: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '200':
+          description: Rating stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [rating]
+      summary: Upsert a rating from a client
+      description: |
+        Creates or updates the rating from the given `client_id`. Only one rating per
+        `(manga_id, client_id)` is allowed; subsequent POSTs update the value.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingInput'
+      responses:
+        '201':
+          description: Rating saved; updated stats returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [rating]
+      summary: Remove the caller's rating
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          schema: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '200':
+          description: Rating removed; updated stats returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /upload/cover:
     post:
@@ -408,6 +478,15 @@ components:
         updated_at:
           type: string
           format: date-time
+        rating_avg:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          description: Average rating (0 if none)
+        rating_count:
+          type: integer
+          minimum: 0
 
     MangaWithTags:
       allOf:
@@ -547,6 +626,47 @@ components:
           type: string
         name:
           type: string
+
+    RatingInput:
+      type: object
+      required: [client_id, value]
+      properties:
+        client_id:
+          type: string
+          minLength: 8
+          maxLength: 128
+          example: 'a3a3f1f0-9b8e-4f1a-9b00-2a01a4ea7eb1'
+        value:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    RatingStats:
+      type: object
+      required: [avg, count, distribution, mine]
+      properties:
+        avg:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+        count:
+          type: integer
+          minimum: 0
+        distribution:
+          type: object
+          required: ['1', '2', '3', '4', '5']
+          properties:
+            '1': { type: integer }
+            '2': { type: integer }
+            '3': { type: integer }
+            '4': { type: integer }
+            '5': { type: integer }
+        mine:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 5
 
     UploadResponse:
       type: object
