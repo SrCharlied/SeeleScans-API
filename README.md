@@ -4,6 +4,30 @@ Backend de SeeleScans. Stack: **ElysiaJS + Bun + PostgreSQL**.
 
 API REST para un lector de mangas. Expone CRUD sobre `/manga` con paginación, búsqueda y ordenamiento, más endpoints de solo lectura para capítulos, páginas y tags. La especificación OpenAPI 3.0 está escrita a mano en `docs/openapi.yaml` y se sirve junto a una UI Swagger en `/docs`.
 
+## 🏆 Challenges implementados
+
+Tabla de cumplimiento contra la consigna. Los puntajes corresponden al lado backend; lo del cliente está en `SeeleScans-Client/README.md`.
+
+### API y Backend (140/140 pts)
+
+| Challenge | Pts | Implementación |
+| --- | :---: | --- |
+| ✅ OpenAPI 3.0 Spec | 20 | YAML manual en `docs/openapi.yaml` (paths, parámetros, schemas reusables, responses tipadas). Se valida en [editor.swagger.io](https://editor.swagger.io/). |
+| ✅ Swagger UI servida | 20 | `GET /docs` devuelve un HTML que carga `swagger-ui-dist@5` desde unpkg y consume `/openapi.yaml`. Implementado en `src/routes/docs.routes.ts`. |
+| ✅ HTTP codes correctos | 20 | `200` GET, `201` POST, `204` DELETE, `400` validación, `404` no encontrado, `500` server error. Mapeo centralizado vía `onError` global en `src/index.ts` que reconoce `AppError`. |
+| ✅ Validación server-side | 20 | **zod** en `src/validation/manga.schema.ts`. Wrappers `validateBody/Query/Params` en `src/utils/validate.ts` que lanzan `badRequest` con el primer issue formateado como `"campo: mensaje"`. |
+| ✅ Paginación | 30 | `GET /manga?page=N&limit=M` con `LIMIT/OFFSET` SQL. Total se calcula con `COUNT(*) OVER()` en la misma query (sin segundo round-trip). Response con `meta: { page, limit, total, totalPages }`. |
+| ✅ Búsqueda | 15 | `GET /manga?q=...` con `WHERE title ILIKE '%q%'`. |
+| ✅ Ordenamiento | 15 | `GET /manga?sort=&order=` con whitelist (`title`, `year`, `created_at`, `updated_at` × `asc/desc`) y `NULLS LAST` cuando ordena por `year`. Sort fuera de whitelist → `400`. |
+
+### Challenges extra (60/110 pts)
+
+| Challenge | Pts | Estado |
+| --- | :---: | --- |
+| ✅ Rating system | 30 | Tabla `ratings` con `UNIQUE (manga_id, client_id)` + endpoints REST `GET / POST / DELETE /manga/:id/rating`. POST hace upsert. Listado y detalle de manga incluyen `rating_avg` y `rating_count` agregados via subselect. Detalle backend más abajo. |
+| ✅ Upload imágenes | 30 | `POST /upload/cover` con `multipart/form-data`, validación de mime + tamaño (1 MiB), guardado con UUID, servicio estático en `GET /uploads/covers/:filename` con regex anti path-traversal. Volume `./uploads:/app/uploads` para persistir. |
+| ❌ Excel export | 30 | (Pendiente — el cliente sí cumple CSV.) |
+
 ## Levantar el stack
 
 ```bash
