@@ -4,6 +4,14 @@ Backend de SeeleScans. Stack: **ElysiaJS + Bun + PostgreSQL**.
 
 API REST para un lector de mangas. Expone CRUD sobre `/manga` con paginación, búsqueda y ordenamiento, más endpoints de solo lectura para capítulos, páginas y tags. La especificación OpenAPI 3.0 está escrita a mano en `docs/openapi.yaml` y se sirve junto a una UI Swagger en `/docs`.
 
+## 🔗 Links
+
+- **Demo cliente:** https://seelescans.servigtdev.com
+- **API base:** https://api.seele.servigtdev.com
+- **Swagger UI:** https://api.seele.servigtdev.com/docs
+- **OpenAPI YAML:** https://api.seele.servigtdev.com/openapi.yaml
+- **Repo cliente:** https://github.com/SrCharlied/SeeleScans-Client
+
 ## 🏆 Challenges implementados
 
 Tabla de cumplimiento contra la consigna. Los puntajes corresponden al lado backend; lo del cliente está en `SeeleScans-Client/README.md`.
