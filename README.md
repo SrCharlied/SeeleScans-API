@@ -30,10 +30,20 @@ src/
 ├── config/db.ts            ← pool de pg
 ├── middlewares/cors.ts     ← CORS manual
 ├── routes/                 ← definición de rutas
-├── controllers/            ← handlers
+├── controllers/              ← handlers
 ├── services/               ← lógica de negocio
 └── models/                 ← tipos
 ```
+
+## Modelos
+
+Los modelos reflejan el schema de la base de datos definido en `docker/init.sql`, que incluye las tablas:
+
+- mangas
+- chapters
+- pages
+- tags
+- manga_tags
 
 ## CORS
 
