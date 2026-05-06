@@ -43,9 +43,20 @@ CREATE TABLE manga_tags (
   PRIMARY KEY (manga_id, tag_id)
 );
 
+CREATE TABLE ratings (
+  id          BIGSERIAL PRIMARY KEY,
+  manga_id    BIGINT NOT NULL REFERENCES mangas(id) ON DELETE CASCADE,
+  client_id   TEXT NOT NULL,
+  value       SMALLINT NOT NULL CHECK (value BETWEEN 1 AND 5),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (manga_id, client_id)
+);
+
 -- Create indexes
 CREATE INDEX idx_chapters_manga_id ON chapters(manga_id);
 CREATE INDEX idx_manga_tags_tag_id ON manga_tags(tag_id);
+CREATE INDEX idx_ratings_manga_id ON ratings(manga_id);
 
 -- Create trigger function for updated_at
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -59,6 +70,11 @@ $$ LANGUAGE plpgsql;
 -- Create trigger
 CREATE TRIGGER set_manga_updated_at
   BEFORE UPDATE ON mangas
+  FOR EACH ROW
+  EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER set_rating_updated_at
+  BEFORE UPDATE ON ratings
   FOR EACH ROW
   EXECUTE FUNCTION set_updated_at();
 
@@ -143,3 +159,29 @@ INSERT INTO pages (chapter_id, page_number, image_url) VALUES
   ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'demon-slayer') AND number = 1.00), 2, 'https://picsum.photos/seed/ds-c1-p2/800/1200'),
   ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'spy-x-family') AND number = 1.00), 1, 'https://picsum.photos/seed/sxf-c1-p1/800/1200'),
   ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'spy-x-family') AND number = 1.00), 2, 'https://picsum.photos/seed/sxf-c1-p2/800/1200');
+
+-- Ratings (seeded fake clients so each manga has some stars)
+INSERT INTO ratings (manga_id, client_id, value) VALUES
+  ((SELECT id FROM mangas WHERE slug = 'one-piece'), 'seed-client-a', 5),
+  ((SELECT id FROM mangas WHERE slug = 'one-piece'), 'seed-client-b', 5),
+  ((SELECT id FROM mangas WHERE slug = 'one-piece'), 'seed-client-c', 4),
+  ((SELECT id FROM mangas WHERE slug = 'one-piece'), 'seed-client-d', 5),
+  ((SELECT id FROM mangas WHERE slug = 'one-piece'), 'seed-client-e', 4),
+  ((SELECT id FROM mangas WHERE slug = 'naruto'), 'seed-client-a', 4),
+  ((SELECT id FROM mangas WHERE slug = 'naruto'), 'seed-client-b', 5),
+  ((SELECT id FROM mangas WHERE slug = 'naruto'), 'seed-client-c', 4),
+  ((SELECT id FROM mangas WHERE slug = 'naruto'), 'seed-client-d', 3),
+  ((SELECT id FROM mangas WHERE slug = 'attack-on-titan'), 'seed-client-a', 5),
+  ((SELECT id FROM mangas WHERE slug = 'attack-on-titan'), 'seed-client-b', 5),
+  ((SELECT id FROM mangas WHERE slug = 'attack-on-titan'), 'seed-client-c', 5),
+  ((SELECT id FROM mangas WHERE slug = 'attack-on-titan'), 'seed-client-d', 4),
+  ((SELECT id FROM mangas WHERE slug = 'my-hero-academia'), 'seed-client-a', 4),
+  ((SELECT id FROM mangas WHERE slug = 'my-hero-academia'), 'seed-client-b', 3),
+  ((SELECT id FROM mangas WHERE slug = 'my-hero-academia'), 'seed-client-c', 4),
+  ((SELECT id FROM mangas WHERE slug = 'demon-slayer'), 'seed-client-a', 5),
+  ((SELECT id FROM mangas WHERE slug = 'demon-slayer'), 'seed-client-b', 4),
+  ((SELECT id FROM mangas WHERE slug = 'demon-slayer'), 'seed-client-c', 5),
+  ((SELECT id FROM mangas WHERE slug = 'demon-slayer'), 'seed-client-d', 5),
+  ((SELECT id FROM mangas WHERE slug = 'spy-x-family'), 'seed-client-a', 5),
+  ((SELECT id FROM mangas WHERE slug = 'spy-x-family'), 'seed-client-b', 4),
+  ((SELECT id FROM mangas WHERE slug = 'spy-x-family'), 'seed-client-c', 4);
