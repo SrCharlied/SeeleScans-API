@@ -1,0 +1,43 @@
+# Docker Compose para PRODUCCIÓN.
+# Diferencias vs docker-compose.yml (dev):
+#  - sin bind mount de código (la imagen es la fuente de verdad)
+#  - api solo escucha en 127.0.0.1 → se accede vía Caddy reverse proxy
+#  - db sin port mapping a host → no expuesta a internet
+#  - restart: unless-stopped
+#  - DB_PASSWORD se lee de .env, no hardcodeado
+
+services:
+  api:
+    build: .
+    container_name: manga-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+    command: bun run src/index.ts
+
+  db:
+    image: postgres:15
+    container_name: manga-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+      POSTGRES_DB: ${DB_NAME:-manga_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-manga_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:

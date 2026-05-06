@@ -1,10 +1,13 @@
 import { Elysia } from 'elysia';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+const ALLOWED_ORIGIN = process.env.CORS_ORIGIN ?? '*';
+
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-} as const;
+  ...(ALLOWED_ORIGIN !== '*' ? { Vary: 'Origin' } : {}),
+};
 
 const corsMiddleware = new Elysia({ name: 'cors' })
   .onRequest(({ request, set }) => {

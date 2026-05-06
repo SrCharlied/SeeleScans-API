@@ -30,11 +30,14 @@ Tabla de cumplimiento contra la consigna. Los puntajes corresponden al lado back
 
 ## Levantar el stack
 
+### Modo desarrollo (local)
+
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
-Esto levanta dos servicios:
+Eso levanta dos servicios con valores listos para correr local:
 
 - `manga-api` — API en `http://localhost:3000`
 - `manga-db` — Postgres 15 en `localhost:5432` (DB `manga_db`, user `postgres`, pass `1234`)
@@ -44,6 +47,33 @@ El init script `docker/init.sql` corre solo la primera vez (cuando el volumen `p
 ```bash
 docker compose down -v && docker compose up --build
 ```
+
+### Modo producción
+
+Antes de levantar, editar `.env` con valores reales:
+
+- `DB_PASSWORD` — generar con `openssl rand -base64 24`
+- `JWT_SECRET` — generar con `openssl rand -base64 32`
+- `PUBLIC_BASE_URL` — URL pública de la API (ej. `https://api.seele.servigtdev.com`); afecta las URLs devueltas por `/upload/cover`
+- `CORS_ORIGIN` — origen exacto del cliente (ej. `https://seelescans.servigtdev.com`); reemplaza el `*` permisivo del dev
+
+Después:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Diferencias del compose de prod vs el de dev:
+
+| Aspecto | Dev (`docker-compose.yml`) | Prod (`docker-compose.prod.yml`) |
+| --- | --- | --- |
+| Bind mount del código | `.:/app` (hot reload) | sin bind, la imagen built es la fuente de verdad |
+| API expone puerto | `3000:3000` (toda la red) | `127.0.0.1:3000:3000` (solo loopback, se accede vía reverse proxy) |
+| DB expone puerto | `5432:5432` | sin port mapping (no accesible desde internet) |
+| Restart policy | ninguna | `unless-stopped` |
+| `DB_PASSWORD` | hardcoded `1234` | leída de `.env`, falla el boot si no está |
+
+En prod típicamente atrás hay un reverse proxy (Caddy/nginx) terminando TLS y proxeando a `127.0.0.1:3000`.
 
 ## Documentación de la API
 
