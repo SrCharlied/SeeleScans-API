@@ -6,6 +6,7 @@ import tagRoutes from './routes/tag.routes';
 import docsRoutes from './routes/docs.routes';
 import uploadRoutes from './routes/upload.routes';
 import staticRoutes from './routes/static.routes';
+import ratingRoutes from './routes/rating.routes';
 import { pool } from './config/db';
 import { AppError } from './utils/errors';
 
@@ -24,6 +25,7 @@ const app = new Elysia()
   .use(mangaRoutes)
   .use(chapterRoutes)
   .use(tagRoutes)
+  .use(ratingRoutes)
   .use(uploadRoutes)
   .use(staticRoutes)
   .use(docsRoutes)

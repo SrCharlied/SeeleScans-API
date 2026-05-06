@@ -38,4 +38,30 @@ export interface Tag {
 
 export interface MangaWithTags extends Manga {
   tags: Tag[];
+  rating_avg?: number;
+  rating_count?: number;
+}
+
+export interface Rating {
+  id: number;
+  manga_id: number;
+  client_id: string;
+  value: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RatingDistribution {
+  1: number;
+  2: number;
+  3: number;
+  4: number;
+  5: number;
+}
+
+export interface RatingStats {
+  avg: number;
+  count: number;
+  distribution: RatingDistribution;
+  mine: number | null;
 }
