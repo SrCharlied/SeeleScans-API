@@ -64,8 +64,12 @@ export const mangaService = {
 
     const offset = (page - 1) * limit;
 
-    const result = await query<Manga & { total_count: string }>(
-      `SELECT m.*, COUNT(*) OVER() AS total_count
+    const result = await query<Manga & { total_count: string; rating_avg: string; rating_count: string }>(
+      `SELECT
+         m.*,
+         COUNT(*) OVER() AS total_count,
+         COALESCE((SELECT ROUND(AVG(value)::numeric, 2) FROM ratings WHERE manga_id = m.id), 0) AS rating_avg,
+         COALESCE((SELECT COUNT(*) FROM ratings WHERE manga_id = m.id), 0) AS rating_count
        FROM mangas m
        ${whereClause}
        ${orderByClause}
@@ -76,18 +80,24 @@ export const mangaService = {
     const firstRow = result.rows[0];
     const total = firstRow ? parseInt(String(firstRow.total_count), 10) : 0;
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
-    const data = result.rows.map(({ total_count, ...rest }) => rest as Manga);
+    const data = result.rows.map(({ total_count, rating_avg, rating_count, ...rest }) => ({
+      ...(rest as Manga),
+      rating_avg: parseFloat(String(rating_avg ?? 0)),
+      rating_count: parseInt(String(rating_count ?? 0), 10),
+    }));
 
     return { data, meta: { page, limit, total, totalPages } };
   },
 
   async getById(id: number): Promise<MangaWithTags | null> {
-    const result = await query<MangaWithTags>(
+    const result = await query<MangaWithTags & { rating_avg: string; rating_count: string }>(
       `SELECT m.*,
               COALESCE(
                 json_agg(t.*) FILTER (WHERE t.id IS NOT NULL),
                 '[]'::json
-              ) AS tags
+              ) AS tags,
+              COALESCE((SELECT ROUND(AVG(value)::numeric, 2) FROM ratings WHERE manga_id = m.id), 0) AS rating_avg,
+              COALESCE((SELECT COUNT(*) FROM ratings WHERE manga_id = m.id), 0) AS rating_count
        FROM mangas m
        LEFT JOIN manga_tags mt ON m.id = mt.manga_id
        LEFT JOIN tags t ON mt.tag_id = t.id
@@ -95,7 +105,14 @@ export const mangaService = {
        GROUP BY m.id`,
       [id],
     );
-    return result.rows[0] ?? null;
+    const row = result.rows[0];
+    if (!row) return null;
+    const { rating_avg, rating_count, ...rest } = row;
+    return {
+      ...(rest as MangaWithTags),
+      rating_avg: parseFloat(String(rating_avg ?? 0)),
+      rating_count: parseInt(String(rating_count ?? 0), 10),
+    };
   },
 
   async create(data: MangaCreateData): Promise<MangaWithTags> {
