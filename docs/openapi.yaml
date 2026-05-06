@@ -1,0 +1,495 @@
+openapi: 3.0.3
+info:
+  title: SeeleScans API
+  version: 1.0.0
+  description: |
+    API for the SeeleScans manga reader. Exposes CRUD endpoints for mangas
+    (with pagination, search, and sorting) plus read-only endpoints for
+    chapters, pages, and tags.
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: manga
+    description: Manga CRUD operations
+  - name: chapter
+    description: Chapter and page lookup
+  - name: tag
+    description: Tag catalog
+  - name: meta
+    description: Service metadata and docs
+
+paths:
+  /:
+    get:
+      tags: [meta]
+      summary: API metadata
+      responses:
+        '200':
+          description: API name and version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+
+  /health:
+    get:
+      tags: [meta]
+      summary: Health check
+      responses:
+        '200':
+          description: API and database are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  db:
+                    type: string
+                    enum: [up]
+        '500':
+          description: Database is unreachable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  db:
+                    type: string
+                    enum: [down]
+
+  /manga:
+    get:
+      tags: [manga]
+      summary: List mangas with pagination, search, and sorting
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OrderParam'
+      responses:
+        '200':
+          description: Paginated list of mangas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMangas'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      tags: [manga]
+      summary: Create a new manga
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MangaInput'
+      responses:
+        '201':
+          description: Created manga (with tags)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaWithTags'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /manga/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [manga]
+      summary: Get a manga by id
+      responses:
+        '200':
+          description: Manga with tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaWithTags'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [manga]
+      summary: Update a manga (partial)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MangaUpdate'
+      responses:
+        '200':
+          description: Updated manga (with tags)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MangaWithTags'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [manga]
+      summary: Delete a manga by id
+      responses:
+        '204':
+          description: Deleted (no content)
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /manga/{id}/chapters:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [chapter]
+      summary: List chapters of a manga
+      responses:
+        '200':
+          description: Chapters ordered by number
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chapter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /chapters/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [chapter]
+      summary: Get a chapter by id
+      responses:
+        '200':
+          description: Chapter detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chapters/{id}/pages:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [chapter]
+      summary: List pages of a chapter
+      responses:
+        '200':
+          description: Pages ordered by page_number
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Page'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /tags:
+    get:
+      tags: [tag]
+      summary: List all tags
+      responses:
+        '200':
+          description: Tags ordered by name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+
+  /openapi.yaml:
+    get:
+      tags: [meta]
+      summary: This OpenAPI specification
+      responses:
+        '200':
+          description: OpenAPI 3.0.3 YAML document
+          content:
+            application/yaml:
+              schema:
+                type: string
+
+  /docs:
+    get:
+      tags: [meta]
+      summary: Swagger UI rendered against /openapi.yaml
+      responses:
+        '200':
+          description: HTML page with Swagger UI
+          content:
+            text/html:
+              schema:
+                type: string
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    PageParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    QParam:
+      name: q
+      in: query
+      required: false
+      description: Case-insensitive substring search against manga.title
+      schema:
+        type: string
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [title, year, created_at, updated_at]
+        default: created_at
+    OrderParam:
+      name: order
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+
+  responses:
+    BadRequest:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          example: 'title: Required'
+
+    MangaStatus:
+      type: string
+      enum: [ongoing, completed, hiatus]
+
+    Manga:
+      type: object
+      required: [id, slug, title, status, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        synopsis:
+          type: string
+          nullable: true
+        cover_url:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        artist:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/MangaStatus'
+        year:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    MangaWithTags:
+      allOf:
+        - $ref: '#/components/schemas/Manga'
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                $ref: '#/components/schemas/Tag'
+
+    MangaInput:
+      type: object
+      required: [slug, title, status]
+      properties:
+        slug:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+        title:
+          type: string
+          minLength: 1
+        synopsis:
+          type: string
+        cover_url:
+          type: string
+          format: uri
+        author:
+          type: string
+        artist:
+          type: string
+        status:
+          $ref: '#/components/schemas/MangaStatus'
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+        tags:
+          type: array
+          description: Array of tag slugs to associate with the manga
+          items:
+            type: string
+
+    MangaUpdate:
+      type: object
+      description: Partial update; at least one field is required.
+      properties:
+        slug:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+        title:
+          type: string
+          minLength: 1
+        synopsis:
+          type: string
+        cover_url:
+          type: string
+          format: uri
+        author:
+          type: string
+        artist:
+          type: string
+        status:
+          $ref: '#/components/schemas/MangaStatus'
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+        tags:
+          type: array
+          items:
+            type: string
+
+    PaginatedMangas:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Manga'
+        meta:
+          type: object
+          required: [page, limit, total, totalPages]
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    Chapter:
+      type: object
+      required: [id, manga_id, number, created_at]
+      properties:
+        id:
+          type: integer
+        manga_id:
+          type: integer
+        number:
+          type: string
+          description: Chapter number as string (NUMERIC) to preserve precision (e.g., "12.50")
+        title:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    Page:
+      type: object
+      required: [id, chapter_id, page_number, image_url]
+      properties:
+        id:
+          type: integer
+        chapter_id:
+          type: integer
+        page_number:
+          type: integer
+        image_url:
+          type: string
+          format: uri
+
+    Tag:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        name:
+          type: string

@@ -1,17 +1,32 @@
 import { Elysia } from 'elysia';
 import corsMiddleware from './middlewares/cors';
 import mangaRoutes from './routes/manga.routes';
+import chapterRoutes from './routes/chapter.routes';
+import tagRoutes from './routes/tag.routes';
+import docsRoutes from './routes/docs.routes';
 import { pool } from './config/db';
+import { AppError } from './utils/errors';
 
 const app = new Elysia()
   .use(corsMiddleware)
-  .use(mangaRoutes)
-  .get('/', () => {
-    return {
-      name: "SeeleScans API",
-      version: "0.1.0"
-    };
+  .onError(({ error, set }) => {
+    if (error instanceof AppError) {
+      set.status = error.statusCode;
+      return { error: error.message };
+    }
+    console.error('[unhandled]', error);
+    set.status = 500;
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return { error: message };
   })
+  .use(mangaRoutes)
+  .use(chapterRoutes)
+  .use(tagRoutes)
+  .use(docsRoutes)
+  .get('/', () => ({
+    name: 'SeeleScans API',
+    version: '1.0.0',
+  }))
   .get('/health', async ({ set }) => {
     try {
       await pool.query('SELECT 1');
@@ -25,5 +40,5 @@ const app = new Elysia()
   .listen(Number(process.env.PORT ?? 3000));
 
 console.log(
-  `Manga API running at http://${app.server?.hostname}:${app.server?.port}`
+  `Manga API running at http://${app.server?.hostname}:${app.server?.port}`,
 );
