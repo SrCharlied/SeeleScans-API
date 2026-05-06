@@ -58,6 +58,37 @@ La spec se escribe a mano (no se autogenera). Si modificás endpoints, actualiz�
 | GET    | `/chapters/:id/pages`      | 200 / 400     | Páginas de un capítulo               |
 | GET    | `/tags`                    | 200           | Listado de todos los tags            |
 
+### Ratings (1–5 estrellas)
+
+| Método | Path                          | Códigos              | Descripción                                  |
+| ------ | ----------------------------- | -------------------- | -------------------------------------------- |
+| GET    | `/manga/:id/rating`           | 200 / 400 / 404      | Estadísticas + (opcional) tu rating          |
+| POST   | `/manga/:id/rating`           | 201 / 400 / 404      | Upsert tu rating                             |
+| DELETE | `/manga/:id/rating`           | 200 / 400 / 404      | Quitar tu rating                             |
+
+**Identificación sin auth:** cada cliente genera un `client_id` (UUID v4) y lo persiste en `localStorage`. La constraint `UNIQUE (manga_id, client_id)` garantiza un voto por cliente; un `POST` posterior actualiza el voto existente.
+
+**Query params:**
+- `GET ?client_id=<uuid>` — incluye `mine` (tu rating) en la respuesta
+- `DELETE ?client_id=<uuid>` — requerido
+
+**Body POST:**
+```json
+{ "client_id": "uuid-v4-string", "value": 4 }
+```
+
+**Respuesta (mismo shape para GET / POST / DELETE):**
+```json
+{
+  "avg": 4.6,
+  "count": 5,
+  "distribution": { "1": 0, "2": 0, "3": 0, "4": 2, "5": 3 },
+  "mine": 4
+}
+```
+
+Cuando se calcula el listado de mangas (`GET /manga`) o un detalle (`GET /manga/:id`), cada item incluye también `rating_avg` y `rating_count` agregados.
+
 ### Uploads
 
 | Método | Path                              | Códigos        | Descripción                                                  |
