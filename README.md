@@ -58,6 +58,27 @@ La spec se escribe a mano (no se autogenera). Si modificás endpoints, actualiz�
 | GET    | `/chapters/:id/pages`      | 200 / 400     | Páginas de un capítulo               |
 | GET    | `/tags`                    | 200           | Listado de todos los tags            |
 
+### Uploads
+
+| Método | Path                              | Códigos        | Descripción                                                  |
+| ------ | --------------------------------- | -------------- | ------------------------------------------------------------ |
+| POST   | `/upload/cover`                   | 201 / 400      | Subir imagen de portada (`multipart/form-data`, campo `file`) |
+| GET    | `/uploads/covers/:filename`       | 200 / 400 / 404 | Servir una portada previamente subida                       |
+
+**Reglas de upload:**
+- Tipos aceptados: `image/jpeg`, `image/png`, `image/webp`
+- Tamaño máximo: **1 MiB** (1 048 576 bytes)
+- Se guardan en `uploads/covers/<uuid>.<ext>` (volume montado en docker, persiste entre rebuilds)
+- Respuesta 201: `{ url: "http://localhost:3000/uploads/covers/<uuid>.<ext>", filename: "<uuid>.<ext>" }`
+
+**Ejemplo:**
+```bash
+curl -X POST -F "file=@cover.jpg" http://localhost:3000/upload/cover
+# → { "url": "http://localhost:3000/uploads/covers/abc-123.jpg", "filename": "abc-123.jpg" }
+```
+
+Después usás esa URL en el `cover_url` de un POST/PUT a `/manga`.
+
 ### Query params de `GET /manga`
 
 | Param   | Tipo    | Default       | Validación                                              |
@@ -127,13 +148,17 @@ SeeleScans-API/
 │   └── openapi.yaml            ← spec OpenAPI 3.0 manual
 ├── docker/
 │   └── init.sql                ← schema + seed inicial (5 tablas)
+├── uploads/                    ← volume montado; covers subidas
+│   └── covers/<uuid>.<ext>
 ├── src/
 │   ├── index.ts                ← entry point + onError global
-│   ├── config/db.ts            ← pool de pg + helper query<T>()
+│   ├── config/
+│   │   ├── db.ts               ← pool de pg + helper query<T>()
+│   │   └── storage.ts          ← paths, mime types y límites para uploads
 │   ├── middlewares/cors.ts     ← CORS manual (preflight + headers)
-│   ├── routes/                 ← endpoints (manga, chapter, tag, docs)
+│   ├── routes/                 ← endpoints (manga, chapter, tag, upload, static, docs)
 │   ├── controllers/            ← validan input → invocan service
-│   ├── services/               ← queries SQL (transacciones reales)
+│   ├── services/               ← queries SQL + I/O de archivos (transacciones reales)
 │   ├── models/                 ← tipos TS espejo del schema
 │   ├── validation/             ← schemas zod
 │   └── utils/

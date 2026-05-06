@@ -17,6 +17,8 @@ tags:
     description: Chapter and page lookup
   - name: tag
     description: Tag catalog
+  - name: upload
+    description: Image upload + static file serving
   - name: meta
     description: Service metadata and docs
 
@@ -205,6 +207,58 @@ paths:
                   $ref: '#/components/schemas/Page'
         '400':
           $ref: '#/components/responses/BadRequest'
+
+  /upload/cover:
+    post:
+      tags: [upload]
+      summary: Upload a cover image
+      description: |
+        Accepts a single image file via `multipart/form-data` with field name `file`.
+        Validates mime type (jpeg, png, webp) and size (max 1 MiB).
+        Stores the file under `uploads/covers/` with a uuid filename and returns its public URL.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: File saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /uploads/covers/{filename}:
+    parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9][a-zA-Z0-9._-]*$'
+    get:
+      tags: [upload]
+      summary: Serve a previously uploaded cover image
+      responses:
+        '200':
+          description: Binary image
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png:  { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /tags:
     get:
@@ -493,3 +547,15 @@ components:
           type: string
         name:
           type: string
+
+    UploadResponse:
+      type: object
+      required: [url, filename]
+      properties:
+        url:
+          type: string
+          format: uri
+          example: 'http://localhost:3000/uploads/covers/abc-123.jpg'
+        filename:
+          type: string
+          example: 'abc-123.jpg'
