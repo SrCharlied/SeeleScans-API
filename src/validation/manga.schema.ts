@@ -37,3 +37,16 @@ export const MangaListQuerySchema = z.object({
 export const IdParamSchema = z.object({
   id: z.coerce.number().int().positive()
 });
+
+export const RatingCreateSchema = z.object({
+  client_id: z.string().min(8).max(128),
+  value: z.coerce.number().int().min(1).max(5),
+});
+
+export const ClientIdQuerySchema = z.object({
+  client_id: z.string().min(8).max(128).optional(),
+});
+
+export const ClientIdRequiredSchema = z.object({
+  client_id: z.string().min(8).max(128),
+});
