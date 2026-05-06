@@ -291,7 +291,7 @@ Los wrappers en `src/utils/validate.ts` (`validateBody`, `validateQuery`, `valid
 
 ## CORS
 
-**CORS** (Cross-Origin Resource Sharing) es el mecanismo que permite a un navegador hacer peticiones entre orígenes distintos. Configuramos el servidor para responder con `Access-Control-Allow-Origin: *` y manejar el preflight `OPTIONS` con `204`, habilitando que el cliente vanilla (servido por Caddy en otro puerto) consuma esta API durante desarrollo.
+**CORS** (Cross-Origin Resource Sharing) es el mecanismo que permite a un navegador hacer peticiones entre orígenes distintos. Configuramos el servidor para responder con `Access-Control-Allow-Origin: *` y manejar el preflight `OPTIONS` con `204`, habilitando que el cliente vanilla (servido por Bunx en otro puerto) consuma esta API durante desarrollo.
 
 Implementación manual en `src/middlewares/cors.ts` con `onRequest` (corre antes del router para que las preflight a rutas no registradas también respondan correctamente).
 
