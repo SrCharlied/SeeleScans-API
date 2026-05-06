@@ -75,13 +75,14 @@ INSERT INTO tags (slug, name) VALUES
   ('drama', 'Drama');
 
 -- Mangas
+-- cover_url: placehold.co generates a colored placeholder per manga. Swap with real CDN URLs via PUT when available.
 INSERT INTO mangas (slug, title, synopsis, cover_url, author, artist, status, year) VALUES
-  ('one-piece', 'One Piece', 'Join Monkey D. Luffy and his pirate crew in their quest to find the ultimate treasure, the One Piece.', 'https://example.com/one-piece-cover.jpg', 'Eiichiro Oda', 'Eiichiro Oda', 'ongoing', 1997),
-  ('naruto', 'Naruto', 'Naruto Uzumaki, a mischievous adolescent ninja, struggles as he searches for recognition and dreams of becoming the Hokage, the village leader.', 'https://example.com/naruto-cover.jpg', 'Masashi Kishimoto', 'Masashi Kishimoto', 'completed', 1999),
-  ('attack-on-titan', 'Attack on Titan', ' humanity has been devastated by the Titans, who have chased mankind to the walled cities.', 'https://example.com/aot-cover.jpg', 'Hajime Isayama', 'Hajime Isayama', 'completed', 2009),
-  ('my-hero-academia', 'My Hero Academia', 'A boy without a Quirk in a world where they are common must train to become a hero.', 'https://example.com/mha-cover.jpg', 'Kohei Horikoshi', 'Kohei Horikoshi', 'ongoing', 2012),
-  ('demon-slayer', 'Demon Slayer', 'A boy becomes a demon slayer to avenge his family and cure his sister.', 'https://example.com/ds-cover.jpg', 'Koyoharu Gotouge', 'Koyoharu Gotouge', 'completed', 2016),
-  ('spy-x-family', 'Spy x Family', 'A spy, an assassin, and a telepath form an unlikely family.', 'https://example.com/spy-family-cover.jpg', 'Tatsuya Endo', 'Tatsuya Endo', 'ongoing', 2019);
+  ('one-piece', 'One Piece', 'Join Monkey D. Luffy and his pirate crew in their quest to find the ultimate treasure, the One Piece.', 'https://placehold.co/400x600/1a1a2e/ffd700?text=One+Piece&font=roboto', 'Eiichiro Oda', 'Eiichiro Oda', 'ongoing', 1997),
+  ('naruto', 'Naruto', 'Naruto Uzumaki, a mischievous adolescent ninja, struggles as he searches for recognition and dreams of becoming the Hokage, the village leader.', 'https://placehold.co/400x600/c8542a/ffffff?text=Naruto&font=roboto', 'Masashi Kishimoto', 'Masashi Kishimoto', 'completed', 1999),
+  ('attack-on-titan', 'Attack on Titan', 'Humanity has been devastated by the Titans, who have chased mankind to the walled cities.', 'https://placehold.co/400x600/4a3728/e8d3a0?text=Attack+on+Titan&font=roboto', 'Hajime Isayama', 'Hajime Isayama', 'completed', 2009),
+  ('my-hero-academia', 'My Hero Academia', 'A boy without a Quirk in a world where they are common must train to become a hero.', 'https://placehold.co/400x600/2d5a3d/ffffff?text=My+Hero+Academia&font=roboto', 'Kohei Horikoshi', 'Kohei Horikoshi', 'ongoing', 2012),
+  ('demon-slayer', 'Demon Slayer', 'A boy becomes a demon slayer to avenge his family and cure his sister.', 'https://placehold.co/400x600/5e2d2d/ffd700?text=Demon+Slayer&font=roboto', 'Koyoharu Gotouge', 'Koyoharu Gotouge', 'completed', 2016),
+  ('spy-x-family', 'Spy x Family', 'A spy, an assassin, and a telepath form an unlikely family.', 'https://placehold.co/400x600/3d2d5e/ffffff?text=Spy+x+Family&font=roboto', 'Tatsuya Endo', 'Tatsuya Endo', 'ongoing', 2019);
 
 -- Manga tags
 INSERT INTO manga_tags (manga_id, tag_id) VALUES
@@ -126,18 +127,19 @@ INSERT INTO chapters (manga_id, number, title, published_at) VALUES
   ((SELECT id FROM mangas WHERE slug = 'spy-x-family'), 3.00, 'Mission 3', '2019-04-08');
 
 -- Pages (only for chapter 1 of each manga)
+-- image_url: picsum.photos seeded URLs return consistent random images per seed (manga page aspect ratio)
 INSERT INTO pages (chapter_id, page_number, image_url) VALUES
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'one-piece') AND number = 1.00), 1, 'https://example.com/one-piece-ch1-page1.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'one-piece') AND number = 1.00), 2, 'https://example.com/one-piece-ch1-page2.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'one-piece') AND number = 1.00), 3, 'https://example.com/one-piece-ch1-page3.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'naruto') AND number = 1.00), 1, 'https://example.com/naruto-ch1-page1.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'naruto') AND number = 1.00), 2, 'https://example.com/naruto-ch1-page2.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'attack-on-titan') AND number = 1.00), 1, 'https://example.com/aot-ch1-page1.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'attack-on-titan') AND number = 1.00), 2, 'https://example.com/aot-ch1-page2.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'attack-on-titan') AND number = 1.00), 3, 'https://example.com/aot-ch1-page3.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'my-hero-academia') AND number = 1.00), 1, 'https://example.com/mha-ch1-page1.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'my-hero-academia') AND number = 1.00), 2, 'https://example.com/mha-ch1-page2.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'demon-slayer') AND number = 1.00), 1, 'https://example.com/ds-ch1-page1.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'demon-slayer') AND number = 1.00), 2, 'https://example.com/ds-ch1-page2.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'spy-x-family') AND number = 1.00), 1, 'https://example.com/spy-family-ch1-page1.jpg'),
-  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'spy-x-family') AND number = 1.00), 2, 'https://example.com/spy-family-ch1-page2.jpg');
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'one-piece') AND number = 1.00), 1, 'https://picsum.photos/seed/op-c1-p1/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'one-piece') AND number = 1.00), 2, 'https://picsum.photos/seed/op-c1-p2/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'one-piece') AND number = 1.00), 3, 'https://picsum.photos/seed/op-c1-p3/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'naruto') AND number = 1.00), 1, 'https://picsum.photos/seed/nr-c1-p1/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'naruto') AND number = 1.00), 2, 'https://picsum.photos/seed/nr-c1-p2/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'attack-on-titan') AND number = 1.00), 1, 'https://picsum.photos/seed/aot-c1-p1/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'attack-on-titan') AND number = 1.00), 2, 'https://picsum.photos/seed/aot-c1-p2/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'attack-on-titan') AND number = 1.00), 3, 'https://picsum.photos/seed/aot-c1-p3/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'my-hero-academia') AND number = 1.00), 1, 'https://picsum.photos/seed/mha-c1-p1/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'my-hero-academia') AND number = 1.00), 2, 'https://picsum.photos/seed/mha-c1-p2/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'demon-slayer') AND number = 1.00), 1, 'https://picsum.photos/seed/ds-c1-p1/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'demon-slayer') AND number = 1.00), 2, 'https://picsum.photos/seed/ds-c1-p2/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'spy-x-family') AND number = 1.00), 1, 'https://picsum.photos/seed/sxf-c1-p1/800/1200'),
+  ((SELECT id FROM chapters WHERE manga_id = (SELECT id FROM mangas WHERE slug = 'spy-x-family') AND number = 1.00), 2, 'https://picsum.photos/seed/sxf-c1-p2/800/1200');
